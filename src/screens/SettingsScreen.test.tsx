@@ -1,5 +1,6 @@
 import React from "react";
-import { render, waitFor } from "@testing-library/react-native";
+import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
+import { Share } from "react-native";
 import {
   NavigationContainer,
   createNavigationContainerRef,
@@ -10,13 +11,13 @@ import { SettingsScreen } from "./SettingsScreen";
 import { getDefaultApiBaseUrl } from "../api/apiSettings";
 import { RootNavigator, type RootStackParamList } from "../navigation";
 import { ThemeProvider } from "../theme/ThemeProvider";
+import { renderWithProviders, setupFetchMock } from "../test-utils";
 
 jest.mock("@react-navigation/native", () => ({
   ...jest.requireActual("@react-navigation/native"),
   useNavigation: () => ({ navigate: jest.fn() }),
 }));
 
-// Only the registered route names matter here, not the initial screen's UI.
 jest.mock("./CatalogScreen", () => ({ CatalogScreen: () => null }));
 
 jest.mock("react-native-safe-area-context", () => {
@@ -41,13 +42,7 @@ function setDev(value: boolean) {
 
 beforeEach(async () => {
   await AsyncStorage.clear();
-  global.fetch = jest.fn().mockResolvedValue({
-    ok: true,
-    status: 200,
-    json: async () => [],
-    text: async () => "[]",
-    headers: { get: () => null },
-  }) as unknown as typeof global.fetch;
+  setupFetchMock();
 });
 
 afterEach(() => {
@@ -55,11 +50,7 @@ afterEach(() => {
 });
 
 async function renderSettings() {
-  const screen = render(
-    <ThemeProvider>
-      <SettingsScreen />
-    </ThemeProvider>
-  );
+  const screen = renderWithProviders(<SettingsScreen />);
   await screen.findByDisplayValue(getDefaultApiBaseUrl());
   return screen;
 }
@@ -92,5 +83,44 @@ describe("developer tools", () => {
     const { getByText } = await renderSettings();
     expect(getByText("Developer Options")).toBeTruthy();
     expect(await routeNames()).toContain("DevSigner");
+  });
+});
+
+describe("diagnostics", () => {
+  it("shows the report for review before sharing it", async () => {
+    const share = jest.spyOn(Share, "share").mockResolvedValue({ action: Share.sharedAction });
+    const screen = await renderSettings();
+
+    await act(async () => {
+      fireEvent.press(screen.getByLabelText("Share diagnostics"));
+    });
+
+    expect(screen.getByText("Review before sharing")).toBeTruthy();
+    expect(screen.getByLabelText("Diagnostics report").props.children).toContain(
+      "=== MindVault Diagnostics ==="
+    );
+    expect(share).not.toHaveBeenCalled();
+
+    await act(async () => {
+      fireEvent.press(screen.getByLabelText("Share"));
+    });
+    expect(share).toHaveBeenCalledWith(
+      expect.objectContaining({ message: expect.stringContaining("MindVault Diagnostics") })
+    );
+    share.mockRestore();
+  });
+
+  it("shares nothing when the preview is cancelled", async () => {
+    const share = jest.spyOn(Share, "share").mockResolvedValue({ action: Share.sharedAction });
+    const screen = await renderSettings();
+
+    await act(async () => {
+      fireEvent.press(screen.getByLabelText("Share diagnostics"));
+    });
+    fireEvent.press(screen.getByLabelText("Cancel"));
+
+    expect(screen.queryByText("Review before sharing")).toBeNull();
+    expect(share).not.toHaveBeenCalled();
+    share.mockRestore();
   });
 });

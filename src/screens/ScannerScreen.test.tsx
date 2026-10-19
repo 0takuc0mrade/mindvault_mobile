@@ -1,8 +1,8 @@
 import React from "react";
-import { fireEvent, render } from "@testing-library/react-native";
+import { fireEvent } from "@testing-library/react-native";
 
 import { ScannerScreen } from "./ScannerScreen";
-import { ThemeProvider } from "../theme/ThemeProvider";
+import { renderWithProviders } from "../test-utils";
 
 jest.mock("expo-camera", () => ({
   CameraView: () => null,
@@ -13,9 +13,9 @@ jest.mock("expo-clipboard", () => ({
   getStringAsync: jest.fn().mockResolvedValue(""),
 }));
 
-jest.mock("react-native-safe-area-context", () => ({
-  SafeAreaView: ({ children }: { children: React.ReactNode }) => children,
-}));
+jest.mock("react-native-safe-area-context", () =>
+  require("../test-utils").safeAreaMock()
+);
 
 describe("ScannerScreen paste flow", () => {
   const navigation = {
@@ -28,11 +28,7 @@ describe("ScannerScreen paste flow", () => {
   });
 
   function renderScreen() {
-    return render(
-      <ThemeProvider>
-        <ScannerScreen navigation={navigation} />
-      </ThemeProvider>,
-    );
+    return renderWithProviders(<ScannerScreen navigation={navigation} />);
   }
 
   it("opens the paste modal", () => {
