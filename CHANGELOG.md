@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.0](https://github.com/mind-vault-1/mindvault_mobile/compare/v1.1.0...v1.2.0) (2026-10-19)
+
+
+### Features
+
+* publisher delist, recently viewed resources, shared status badge ([#226](https://github.com/mind-vault-1/mindvault_mobile/issues/226)) ([41a3c05](https://github.com/mind-vault-1/mindvault_mobile/commit/41a3c05c061f27446110ef5c9d1603e4d0349474)), closes [#220](https://github.com/mind-vault-1/mindvault_mobile/issues/220) [#221](https://github.com/mind-vault-1/mindvault_mobile/issues/221) [#222](https://github.com/mind-vault-1/mindvault_mobile/issues/222)
+* real x402 v2 payment client ([#228](https://github.com/mind-vault-1/mindvault_mobile/issues/228)) ([3980780](https://github.com/mind-vault-1/mindvault_mobile/commit/3980780f89a0d48983b5be1feef56c0da6c5d7b2)), closes [#219](https://github.com/mind-vault-1/mindvault_mobile/issues/219)
+
 ## [1.1.0](https://github.com/mind-vault-1/mindvault_mobile/compare/v1.0.0...v1.1.0) (2026-10-19)
 
 
