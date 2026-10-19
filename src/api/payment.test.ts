@@ -232,6 +232,17 @@ describe("submitSignedPayment", () => {
     }
   );
 
+  it("still saves a receipt when the settlement omits the optional payer", async () => {
+    const { payer: _payer, ...withoutPayer } = settlement;
+    fetchMock.mockResolvedValue(mockResponse(200, "paid content", {
+      "content-type": "text/plain", "PAYMENT-RESPONSE": settlementHeader(withoutPayer),
+    }));
+    await submitSignedPayment(URL, challenge, "signed-tx");
+    expect(await listReceipts()).toEqual([
+      expect.objectContaining({ txHash: settlement.transaction, payer: "" }),
+    ]);
+  });
+
   it("never fails an accepted payment when storage fails", async () => {
     fetchMock.mockResolvedValue(mockResponse(200, "paid content", {
       "content-type": "text/plain", "PAYMENT-RESPONSE": settlementHeader(settlement),

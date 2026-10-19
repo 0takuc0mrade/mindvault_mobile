@@ -286,7 +286,7 @@ export async function submitSignedPayment(
       const settlement = decodeBase64Json(header) as Record<string, unknown> | null;
       if (settlement?.success === true &&
         typeof settlement.transaction === "string" && settlement.transaction &&
-        typeof settlement.network === "string" && typeof settlement.payer === "string") {
+        typeof settlement.network === "string") {
         const resource = challenge.resource as { url?: unknown; description?: unknown } | null;
         await saveReceipt({
           resourceId: typeof resource?.url === "string" ? parseResourceId(resource.url) : null,
@@ -295,7 +295,8 @@ export async function submitSignedPayment(
           asset: challenge.accepted.asset,
           network: settlement.network,
           txHash: settlement.transaction,
-          payer: settlement.payer,
+          // SettleResponse.payer is optional in @x402/core; keep the receipt without it.
+          payer: typeof settlement.payer === "string" ? settlement.payer : "",
           paidAt: new Date().toISOString(),
         });
       }
